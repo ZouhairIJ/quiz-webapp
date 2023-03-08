@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebTech-10-Quiz</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        #score{
+            border: 3px solid blue;
+            font-size: larger;
+        }
+    </style>
+    <script>
+        function onButtonClick(buttonNumber) {
+            answerButtons[gamestate.rightAnswer].className = "btn btn-success btn-block answer-button";
+
+            if(buttonNumber != gamestate.rightAnswer) {
+                answerButtons[buttonNumber].className = "btn btn-danger btn-block answer-button";
+            }
+
+            if(gamestate.index == 9){                
+                let scorebox = document.querySelector("#scorebox");       
+                let score = document.querySelector("#score");
+
+                score.innerHTML = "<b>Score: </b><p class='ml-3'> " + gamestate.points + "</p>"
+                scorebox.classList.replace("d-none", "d-flex");
+                
+                setTimeout(() => {
+                    gamestate.index = 0; 
+                    gamestate.points = 0;
+
+                    clean();
+                    scorebox.classList.replace("d-flex", "d-none");                    
+                    getQuestions();
+                }, 3000);
+            } else { 
+                setTimeout(() => {
+                    gamestate.index += 1;
+                    setQuestion(gamestate.questions[gamestate.index]); 
+                    clean();
+                }, 1500);
+            }                         
+        }
+
+        function clean(){            
+            for(let i = 0; i < answerButtons.length; i++){
+                answerButtons[i].className = "btn btn-primary btn-block answer-button";
+            } 
+        }
+  </script>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1 id="questionText">Hier kommt eine Frage</h1>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 p-1">
+                <button class="btn btn-primary btn-block answer-button" onclick="onButtonClick(0)">Antwort 1</button>
+            </div>
+            <div class="col-sm-6 p-1">
+                <button class="btn btn-primary btn-block answer-button" onclick="onButtonClick(1)">Antwort 2</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 p-1">
+                <button class="btn btn-primary btn-block answer-button" onclick="onButtonClick(2)">Antwort 3</button>
+            </div>
+            <div class="col-sm-6 p-1">
+                <button class="btn btn-primary btn-block answer-button" onclick="onButtonClick(3)">Antwort 4</button>
+            </div>
+        </div>
+        <div class="d-none justify-content-center mt-3" id="scorebox">
+            <div class="d-flex justify-content-center pl-3 pr-3 pt-3" id="score">
+
+            </div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+
+        let gamestate = {
+            questions: [],
+            index: 0, 
+            points: 0, 
+            rightAnswer: 0
+        }  
+
+        const answerButtons = document.querySelectorAll("button.answer-button");      
+
+        function getQuestions(){
+            fetch("https://opentdb.com/api.php?amount=10&type=multiple")
+                .then(response => response.json())
+                .then(data => gamestate.questions = data.results)   
+                .then(result => setQuestion(result[gamestate.index]));                             
+        }
+
+        function setQuestion(questionContent){
+            const question = questionContent.question;
+            const rightAnswerIndex = Math.floor(Math.random() * (4 - 0) + 0);
+            const rightAnswer = questionContent.correct_answer;
+
+            gamestate.rightAnswer = rightAnswerIndex;
+
+            let answers = questionContent.incorrect_answers;
+            answers = answers.splice(rightAnswerIndex, 0, rightAnswer);
+           
+            document.querySelector("#questionText").innerHTML = question;
+
+            for(let n=0; n < answerButtons.length; n++) {
+                answerButtons[n].innerHTML = questionContent.incorrect_answers[n];
+            }
+        }
+
+        getQuestions();        
+    </script>
+</body>
+</html> 
